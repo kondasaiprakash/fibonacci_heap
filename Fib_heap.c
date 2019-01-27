@@ -19,6 +19,7 @@ Heap_node * move_childs_to_main_circle(Heap_node * root, Heap_node * child_root)
 Heap_node * same_degree_merge(Heap_node * parent,Heap_node * child);
 Heap_node * consolidate(Heap_node * root);
 void print_nodes_in_main_circle(Heap_node * root);
+void make_child_parent_null(Heap_node *root);
 
 
 int count = 0;
@@ -60,7 +61,7 @@ Heap_node * delete(Heap_node *root)
     }
     else if(root->right == root)
     {
-        if(root->child = NULL)
+        if(root->child == NULL)
         {
             free(root);
             root = NULL;
@@ -70,7 +71,10 @@ Heap_node * delete(Heap_node *root)
             Heap_node *temp = root;
             root = root->child;
             // create a method which makes all the parents of the child null  pending pending.....
-            root->parent = NULL;
+            make_child_parent_null(root);
+
+            // root->parent = NULL;
+
             free(temp);
             temp = NULL;
             root = find_min_in_circle(root);
@@ -92,6 +96,7 @@ Heap_node * delete(Heap_node *root)
         else
         {
             Heap_node *child_root = root->child;
+
             if(child_root->right == child_root)
             {
                 root = root->right;
@@ -104,7 +109,8 @@ Heap_node * delete(Heap_node *root)
                 // Heap_node *left_node = child_root;
                 // Heap_node *right_node = child_root->right;
                 root = root->right;
-                child_root->parent = NULL;
+                // child_root->parent = NULL;
+                make_child_parent_null(child_root);
                 root = move_childs_to_main_circle(root, child_root);
 
             }
@@ -115,12 +121,26 @@ Heap_node * delete(Heap_node *root)
         
 
     }
-    printf("%d \n",root->value);
+    // printf("%d \n",root->value);
     return root;
 }
-
+void make_child_parent_null(Heap_node *root)
+{
+    Heap_node *temp = root;
+    while(temp->right != root)
+    {
+        temp->parent = NULL;
+        temp = temp->right;
+    }
+    temp->parent = NULL;
+}
 Heap_node * find_min_in_circle(Heap_node * root)
 {
+    if(root == NULL)
+    {
+        return root;
+
+    }
     Heap_node * min = root;
     Heap_node *temp = root;
     while(temp->right != root)
@@ -181,6 +201,11 @@ Heap_node * same_degree_merge(Heap_node * parent,Heap_node * child)
 
 Heap_node * consolidate(Heap_node * root)
 {
+    if(root == NULL)
+    {
+        return root;
+
+    }
 
     int val = ceil(log(count));
     Heap_node **array = malloc(val*sizeof(Heap_node *));
@@ -233,14 +258,27 @@ Heap_node * consolidate(Heap_node * root)
 
 void print_nodes_in_main_circle(Heap_node * root)
 {
+    if(root == NULL)
+    {
+        printf("\n  all the nodes were deleted ");
+        printf("\n**************enter 0 to exit **********\n");
+        return;
+    }
     int i;
-   Heap_node *temp = root;
-   for(i = 0; i < 5; i++)
-   {
+//    Heap_node *temp = root;
+//    for(i = 0; i < 5; i++)
+//    {
 
-       printf("%d -> ",temp->value);
-       temp = temp->right;
-   }
+//        printf("%d -> ",temp->value);
+//        temp = temp->right;
+//    }
+    Heap_node *temp = root;
+    while(temp->right != root)
+    {
+        printf("%d ->",temp->value);
+        temp = temp->right;
+    }
+    printf("%d->",temp->value);
     
 }
 
@@ -284,7 +322,7 @@ void main()
    scanf("%d",&check);
    while(check)
    {
-       printf("deleting element : %d",root->value);
+       printf(" \n deleting element : %d\n",root->value);
         root = delete(root);
         print_nodes_in_main_circle(root);
         printf("\n enter 1 to delete the element");
