@@ -11,8 +11,16 @@ typedef struct node
     struct node *child;
 
 }Heap_node;
+Heap_node * create_random_nodes(int num);
+Heap_node * insert(Heap_node *root,Heap_node *one);
+Heap_node * delete(Heap_node *root);
 Heap_node * find_min_in_circle(Heap_node * root);
 Heap_node * move_childs_to_main_circle(Heap_node * root, Heap_node * child_root);
+Heap_node * same_degree_merge(Heap_node * parent,Heap_node * child);
+Heap_node * consolidate(Heap_node * root);
+void print_nodes_in_main_circle(Heap_node * root);
+
+
 int count = 0;
 
 Heap_node * insert(Heap_node *root,Heap_node *one)
@@ -61,6 +69,7 @@ Heap_node * delete(Heap_node *root)
         {
             Heap_node *temp = root;
             root = root->child;
+            // create a method which makes all the parents of the child null  pending pending.....
             root->parent = NULL;
             free(temp);
             temp = NULL;
@@ -101,6 +110,7 @@ Heap_node * delete(Heap_node *root)
             }
 
         }
+        root = consolidate(root);
         root = find_min_in_circle(root);
         
 
@@ -152,6 +162,8 @@ Heap_node * same_degree_merge(Heap_node * parent,Heap_node * child)
     {
         parent->child = child;
         parent->degree = 1;
+        child->right = child;
+        child->left = child;
     }
     else
     {
@@ -169,32 +181,82 @@ Heap_node * same_degree_merge(Heap_node * parent,Heap_node * child)
 
 Heap_node * consolidate(Heap_node * root)
 {
+
     int val = ceil(log(count));
-    Heap_node * array = (Heap_node *)malloc(val*sizeof(Heap_node *));
+    Heap_node **array = malloc(val*sizeof(Heap_node *));
     Heap_node * temp = root;
+    int chance = 1;
     while(temp->right != root)
     {
-        if(array[temp->degree] != NULL)
+        
+        if(array[temp->degree] != NULL && array[temp->degree] != temp)
         {
+            int deg = temp->degree;
             if(array[temp->degree]->value <= temp->value)
             {
                 // array[temp->degree] = NULL;
-                array[2*temp->degree-1] = same_degree_merge(array[temp->degree],temp);
-                temp = array[2*temp->degree-1];
+                // array[2*temp->degree-1] = same_degree_merge(array[temp->degree],temp);
+                // temp = array[2*temp->degree-1];
+                temp = same_degree_merge(array[temp->degree],temp);
             }
             else
             {
-                array[2*temp->degree-1] = same_degree_merge(temp,array[temp->degree]);
-                temp = array[2*temp->degree-1];
+                // array[2*temp->degree-1] = same_degree_merge(temp,array[temp->degree]);
+                // temp = array[2*temp->degree-1];
+                temp = same_degree_merge(temp,array[temp->degree]);
+                root = temp;
             }
-            array[temp->degree] = NULL;
+            chance = 0;
+            array[deg] = NULL;
         }
-        while(root->parent != NULL)
+        else
         {
-            root = root->parent;
-            
+            array[temp->degree] = temp;
+            temp = temp->right;
+
         }
+        if(temp->right == root && chance == 0)
+        {
+            chance = 1;
+            root = root->right;
+        }
+        
+        // while(root->parent != NULL)
+        // {
+        //     root = root->parent;
+            
+        // }
     } 
+    return root;
+
+}
+
+void print_nodes_in_main_circle(Heap_node * root)
+{
+    int i;
+   Heap_node *temp = root;
+   for(i = 0; i < 5; i++)
+   {
+
+       printf("%d -> ",temp->value);
+       temp = temp->right;
+   }
+    
+}
+
+Heap_node * create_random_nodes(int num)
+{
+    Heap_node *root = NULL;
+   int i = 0;
+   for(i = 0; i < num; i++)
+   {
+       Heap_node *one = (Heap_node *)malloc(sizeof(Heap_node));
+       one->value = i;
+       
+       root = insert(root,one);
+       printf("inserted %d \n",i);
+   }
+   return root;
 
 }
 void main()
@@ -210,24 +272,25 @@ void main()
     printf("%d",one->value);
     */
 
-//    Heap_node *root = NULL;
-//    int i = 0;
-//    for(i = 0; i < 5; i++)
-//    {
-//        Heap_node *one = (Heap_node *)malloc(sizeof(Heap_node));
-//        one->value = i;
-       
-//        root = insert(root,one);
-//        printf("inserted %d \n",i);
-//    }
-//    i = 0;
-//     Heap_node *temp = root;
-//    for(i = 0; i < 5; i++)
-//    {
+   Heap_node *root = NULL;
+   int num;
+   printf("\n enter number of nodes to create :");
+   scanf("%d",&num);
+   root = create_random_nodes(num);
+   print_nodes_in_main_circle(root);
 
-//        printf("%d -> ",temp->value);
-//        temp = temp->right;
-//    }
+   printf("\n enter 1 to delete the element");
+   int check;
+   scanf("%d",&check);
+   while(check)
+   {
+       printf("deleting element : %d",root->value);
+        root = delete(root);
+        print_nodes_in_main_circle(root);
+        printf("\n enter 1 to delete the element");
+        scanf("%d",&check);
+   }
+   
 //     printf("%d is going to be deleted \n",root->value);
 //    root = delete(root);
 //    printf("\n %d is the minimum value now : ",root->value);
